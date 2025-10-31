@@ -43,6 +43,14 @@
       background: var(--panel);
       padding: 16px 20px;
       border-bottom: 2px solid var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-content {
+      flex: 1;
     }
     .header h1 {
       font-size: var(--xl);
@@ -54,6 +62,20 @@
       margin-top: 6px;
       font-size: var(--sm);
     }
+    #clearHistoryBtn {
+      padding: 10px 16px;
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: var(--sm);
+      min-height: 36px;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    #clearHistoryBtn:hover { background: #cc0000; }
 
     .chat-container {
       flex: 1;
@@ -69,8 +91,7 @@
       max-width: 70%;
       padding: 12px 16px;
       border-radius: var(--radius);
-      line-height: 1.55;
-      white-space: pre-wrap;
+      line-height: 1.6;
       word-wrap: break-word;
       word-break: break-word; /* avoid overflow on long URLs */
       font-size: var(--base);
@@ -87,6 +108,52 @@
       border: 1px solid var(--panel-border);
     }
 
+    /* Better typography for assistant messages */
+    .message.assistant p {
+      margin-bottom: 0.8em;
+    }
+    .message.assistant p:last-child {
+      margin-bottom: 0;
+    }
+    .message.assistant strong,
+    .message.assistant b {
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .message.assistant ul,
+    .message.assistant ol {
+      margin: 0.5em 0 0.8em 1.2em;
+      padding-left: 0.5em;
+    }
+    .message.assistant li {
+      margin-bottom: 0.3em;
+    }
+
+    /* Loading indicator */
+    .loading-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--panel-border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .input-container {
       position: sticky;             /* sticks to bottom */
       bottom: 0;
@@ -95,25 +162,62 @@
       padding: 12px;
       padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* iOS safe area */
       border-top: 1px solid var(--panel-border);
+    }
+
+    .input-wrapper {
       display: flex;
       gap: 10px;
-      align-items: center;
+      align-items: flex-end;
     }
-    #messageInput {
+
+    .textarea-container {
       flex: 1;
-      padding: 14px 14px;
+      position: relative;
+    }
+
+    #messageInput {
+      width: 100%;
+      padding: 12px 14px;
       border: 1px solid var(--panel-border);
       border-radius: 12px;
       background: var(--bg);
       color: var(--text);
       font-size: var(--base);       /* >=16px prevents iOS zoom */
+      font-family: inherit;
       outline: none;
       min-height: 44px;             /* comfortable tap target */
+      max-height: 200px;            /* approximately 10 rows */
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.5;
     }
     #messageInput:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(0,255,136,0.2);
     }
+
+    .char-counter {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .char-counter.warning {
+      color: #ffaa00;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
     button {
       padding: 14px 18px;
       background: var(--accent);
@@ -125,9 +229,14 @@
       font-size: var(--base);
       min-height: 44px;             /* comfortable tap target */
       white-space: nowrap;
+      transition: background 0.2s;
     }
     button:hover { background: #00dd77; }
-    button:disabled { background: #444; cursor: not-allowed; }
+    button:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
 
     /* Mobile-first tweaks */
     @media (max-width: 600px){
@@ -136,19 +245,25 @@
       .header { padding: 14px 16px; }
       .input-container { padding: 10px; gap: 8px; }
       button { padding: 12px 14px; }
+      #messageInput { font-size: 16px; } /* prevent iOS zoom */
+      .input-hint { font-size: 10px; }
     }
 
     /* Larger screens can breathe a little more */
     @media (min-width: 900px){
       .chat-container { padding: 20px; gap: 15px; }
       .message { max-width: 70%; padding: 15px 20px; }
+      #messageInput { max-height: 250px; } /* allow more rows on desktop */
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>🏈 Fantasy Football AI Assistant</h1>
-    <p>Powered by Claude Sonnet 4.5 + Live Stats</p>
+    <div class="header-content">
+      <h1>🏈 Fantasy Football AI Assistant</h1>
+      <p>Powered by Claude Sonnet 4.5 + Live Stats</p>
+    </div>
+    <button id="clearHistoryBtn">Clear History</button>
   </div>
 
   <div class="chat-container" id="chatContainer">
@@ -163,16 +278,21 @@ Try asking:
   </div>
 
   <div class="input-container">
-    <input 
-      type="text" 
-      id="messageInput" 
-      placeholder="Ask about your team, waivers, injuries..."
-      inputmode="text"
-      autocomplete="off"
-      autocapitalize="sentences"
-      spellcheck="false"
-    />
-    <button id="sendButton">Send</button>
+    <div class="input-wrapper">
+      <div class="textarea-container">
+        <textarea
+          id="messageInput"
+          placeholder="Ask about your team, waivers, injuries..."
+          rows="3"
+          autocomplete="off"
+          autocapitalize="sentences"
+          spellcheck="true"
+        ></textarea>
+        <div class="char-counter" id="charCounter">0</div>
+      </div>
+      <button id="sendButton">Send</button>
+    </div>
+    <div class="input-hint">Press <strong>Shift+Enter</strong> to send • <strong>Enter</strong> for new line</div>
   </div>
 
   <script>
@@ -182,17 +302,96 @@ Try asking:
 
     console.log('Chat loaded. Webhook URL:', WEBHOOK_URL);
 
+    // Session history management
+    const HISTORY_KEY = 'fantasy_chat_history';
+    const MAX_HISTORY = 10;
+    let chatHistory = loadHistory();
+
+    function loadHistory() {
+      try {
+        const saved = localStorage.getItem(HISTORY_KEY);
+        return saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        console.error('Error loading history:', e);
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory));
+      } catch (e) {
+        console.error('Error saving history:', e);
+      }
+    }
+
+    function addToHistory(userMessage, assistantResponse) {
+      chatHistory.push({ user: userMessage, assistant: assistantResponse, timestamp: Date.now() });
+      if (chatHistory.length > MAX_HISTORY) {
+        chatHistory = chatHistory.slice(-MAX_HISTORY);
+      }
+      saveHistory();
+    }
+
+    function clearHistory() {
+      if (confirm('Are you sure you want to clear the conversation history?')) {
+        chatHistory = [];
+        localStorage.removeItem(HISTORY_KEY);
+        // Clear chat container except welcome message
+        const container = document.getElementById('chatContainer');
+        container.innerHTML = `<div class="message assistant">
+Hi! I'm your fantasy football AI assistant. I have access to your Sleeper team and can search for live stats and injury updates. Ask me anything!
+
+Try asking:
+• "Should I start X or Y this week?"
+• "Who should I pick up from waivers?"
+• "Give me injury updates for my team"
+        </div>`;
+      }
+    }
+
+    // Restore previous conversation on load
+    function restoreHistory() {
+      chatHistory.forEach(entry => {
+        addMessageToDOM(entry.user, 'user');
+        addMessageToDOM(entry.assistant, 'assistant');
+      });
+    }
+
     // Event listeners
     const inputEl = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendButton');
+    const clearBtn = document.getElementById('clearHistoryBtn');
+    const charCounter = document.getElementById('charCounter');
 
+    // Auto-expand textarea
+    function autoExpand() {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 250) + 'px';
+
+      // Update character counter
+      const length = inputEl.value.length;
+      charCounter.textContent = length;
+      if (length > 500) {
+        charCounter.classList.add('warning');
+      } else {
+        charCounter.classList.remove('warning');
+      }
+    }
+
+    inputEl.addEventListener('input', autoExpand);
+
+    // Keyboard handling: Shift+Enter submits, Enter creates new line
     inputEl.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault(); // avoid newline on some mobile keyboards
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
         sendMessage();
       }
+      // Let Enter create new line naturally (no preventDefault)
     });
+
     sendBtn.addEventListener('click', sendMessage);
+    clearBtn.addEventListener('click', clearHistory);
 
     async function sendMessage() {
       const message = inputEl.value.trim();
@@ -201,26 +400,35 @@ Try asking:
       inputEl.disabled = true;
       sendBtn.disabled = true;
 
-      addMessage(message, 'user');
+      const userMessage = message;
+      addMessageToDOM(userMessage, 'user');
       inputEl.value = '';
+      inputEl.style.height = 'auto';
+      charCounter.textContent = '0';
 
-      const typingDiv = addMessage('Thinking…', 'assistant');
+      const loadingIndicator = addLoadingIndicator();
 
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ message: userMessage })
         });
 
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
 
-        typingDiv.remove();
-        addMessage(data.response || JSON.stringify(data), 'assistant');
+        loadingIndicator.remove();
+        const assistantResponse = data.response || JSON.stringify(data);
+        addMessageToDOM(assistantResponse, 'assistant');
+
+        // Save to history
+        addToHistory(userMessage, assistantResponse);
       } catch (err) {
-        typingDiv.remove();
-        addMessage('Error: ' + err.message, 'assistant');
+        loadingIndicator.remove();
+        const errorMessage = 'Error: ' + err.message;
+        addMessageToDOM(errorMessage, 'assistant');
+        addToHistory(userMessage, errorMessage);
       } finally {
         inputEl.disabled = false;
         sendBtn.disabled = false;
@@ -228,15 +436,50 @@ Try asking:
       }
     }
 
-    function addMessage(text, type) {
+    function addLoadingIndicator() {
       const container = document.getElementById('chatContainer');
       const div = document.createElement('div');
-      div.className = 'message ' + type;
-      div.textContent = text;
+      div.className = 'loading-indicator';
+      div.innerHTML = '<div class="spinner"></div><span>Analyzing your request...</span>';
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
       return div;
     }
+
+    function addMessageToDOM(text, type) {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = 'message ' + type;
+
+      if (type === 'assistant') {
+        // Parse basic formatting for assistant messages
+        div.innerHTML = formatAssistantMessage(text);
+      } else {
+        div.textContent = text;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return div;
+    }
+
+    function formatAssistantMessage(text) {
+      // Basic markdown-like formatting
+      let formatted = text
+        // Bold text: **text** or __text__
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        // Preserve line breaks
+        .replace(/\n/g, '<br>');
+
+      return formatted;
+    }
+
+    // Restore history on page load
+    restoreHistory();
+
+    // Focus input on load
+    inputEl.focus();
   </script>
 </body>
 </html>
