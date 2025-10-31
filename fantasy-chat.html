@@ -1,209 +1,242 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Fantasy Football AI Assistant</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #1a1a1a;
-            color: #fff;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .header {
-            background: #2d2d2d;
-            padding: 20px;
-            border-bottom: 2px solid #00ff88;
-        }
-        .header h1 {
-            font-size: 24px;
-            color: #00ff88;
-        }
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .message {
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 15px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-        }
-        .message.user {
-            align-self: flex-end;
-            background: #0066ff;
-            margin-left: auto;
-        }
-        .message.assistant {
-            align-self: flex-start;
-            background: #2d2d2d;
-            border: 1px solid #444;
-        }
-        .input-container {
-            background: #2d2d2d;
-            padding: 20px;
-            border-top: 1px solid #444;
-            display: flex;
-            gap: 10px;
-        }
-        #messageInput {
-            flex: 1;
-            padding: 15px;
-            border: 1px solid #444;
-            border-radius: 10px;
-            background: #1a1a1a;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-        }
-        #messageInput:focus {
-            border-color: #00ff88;
-        }
-        button {
-            padding: 15px 30px;
-            background: #00ff88;
-            color: #000;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background: #00dd77;
-        }
-        button:disabled {
-            background: #444;
-            cursor: not-allowed;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <!-- Viewport for mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Fantasy Football AI Assistant</title>
+  <style>
+    :root{
+      --bg:#1a1a1a;
+      --panel:#2d2d2d;
+      --accent:#00ff88;
+      --panel-border:#444;
+      --text:#fff;
+      --muted:#888;
+
+      /* responsive sizes */
+      --base: clamp(15px, 2.6vw, 17px);
+      --sm: clamp(13px, 2.3vw, 15px);
+      --lg: clamp(18px, 3.6vw, 22px);
+      --xl: clamp(20px, 5.5vw, 28px);
+
+      --radius: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100svh;               /* better on mobile than 100vh */
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .header {
+      position: sticky;             /* stays visible while scrolling */
+      top: 0;
+      z-index: 5;
+      background: var(--panel);
+      padding: 16px 20px;
+      border-bottom: 2px solid var(--accent);
+    }
+    .header h1 {
+      font-size: var(--xl);
+      color: var(--accent);
+      line-height: 1.2;
+    }
+    .header p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: var(--sm);
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word; /* avoid overflow on long URLs */
+      font-size: var(--base);
+    }
+    .message.user {
+      align-self: flex-end;
+      background: #0066ff;
+      margin-left: auto;
+      color: #fff;
+    }
+    .message.assistant {
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+    }
+
+    .input-container {
+      position: sticky;             /* sticks to bottom */
+      bottom: 0;
+      z-index: 5;
+      background: var(--panel);
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* iOS safe area */
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #messageInput {
+      flex: 1;
+      padding: 14px 14px;
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: var(--base);       /* >=16px prevents iOS zoom */
+      outline: none;
+      min-height: 44px;             /* comfortable tap target */
+    }
+    #messageInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0,255,136,0.2);
+    }
+    button {
+      padding: 14px 18px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: var(--base);
+      min-height: 44px;             /* comfortable tap target */
+      white-space: nowrap;
+    }
+    button:hover { background: #00dd77; }
+    button:disabled { background: #444; cursor: not-allowed; }
+
+    /* Mobile-first tweaks */
+    @media (max-width: 600px){
+      .chat-container { padding: 12px 10px 20px; gap: 10px; }
+      .message { max-width: 92%; padding: 12px 14px; }
+      .header { padding: 14px 16px; }
+      .input-container { padding: 10px; gap: 8px; }
+      button { padding: 12px 14px; }
+    }
+
+    /* Larger screens can breathe a little more */
+    @media (min-width: 900px){
+      .chat-container { padding: 20px; gap: 15px; }
+      .message { max-width: 70%; padding: 15px 20px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🏈 Fantasy Football AI Assistant</h1>
-        <p style="color: #888; margin-top: 5px;">Powered by Claude Sonnet 4.5 + Live Stats</p>
-    </div>
-    
-    <div class="chat-container" id="chatContainer">
-        <div class="message assistant">
-            Hi! I'm your fantasy football AI assistant. I have access to your Sleeper team and can search for live stats and injury updates. Ask me anything!
-            
-            Try asking:
-            • "Should I start X or Y this week?"
-            • "Who should I pick up from waivers?"
-            • "Give me injury updates for my team"
-        </div>
-    </div>
-    
-    <div class="input-container">
-        <input 
-            type="text" 
-            id="messageInput" 
-            placeholder="Ask about your team, waivers, injuries..."
-        />
-        <button id="sendButton">Send</button>
-    </div>
+  <div class="header">
+    <h1>🏈 Fantasy Football AI Assistant</h1>
+    <p>Powered by Claude Sonnet 4.5 + Live Stats</p>
+  </div>
 
-    <script>
-        // CHANGE THIS: Use test URL while testing, then switch to production
-        const WEBHOOK_URL = 'https://rishik.app.n8n.cloud/webhook/fantasy-chat'; // TEST URL
-        // const WEBHOOK_URL = 'https://rishik.app.n8n.cloud/webhook/fantasy-chat'; // PRODUCTION URL
-        
-        console.log('Chat loaded. Webhook URL:', WEBHOOK_URL);
-        
-        // Set up event listeners
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+  <div class="chat-container" id="chatContainer">
+    <div class="message assistant">
+Hi! I'm your fantasy football AI assistant. I have access to your Sleeper team and can search for live stats and injury updates. Ask me anything!
+
+Try asking:
+• "Should I start X or Y this week?"
+• "Who should I pick up from waivers?"
+• "Give me injury updates for my team"
+    </div>
+  </div>
+
+  <div class="input-container">
+    <input 
+      type="text" 
+      id="messageInput" 
+      placeholder="Ask about your team, waivers, injuries..."
+      inputmode="text"
+      autocomplete="off"
+      autocapitalize="sentences"
+      spellcheck="false"
+    />
+    <button id="sendButton">Send</button>
+  </div>
+
+  <script>
+    // CHANGE THIS: Use test URL while testing, then switch to production
+    const WEBHOOK_URL = 'https://rishik.app.n8n.cloud/webhook/fantasy-chat'; // TEST URL
+    // const WEBHOOK_URL = 'https://rishik.app.n8n.cloud/webhook/fantasy-chat'; // PRODUCTION URL
+
+    console.log('Chat loaded. Webhook URL:', WEBHOOK_URL);
+
+    // Event listeners
+    const inputEl = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendButton');
+
+    inputEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // avoid newline on some mobile keyboards
+        sendMessage();
+      }
+    });
+    sendBtn.addEventListener('click', sendMessage);
+
+    async function sendMessage() {
+      const message = inputEl.value.trim();
+      if (!message) return;
+
+      inputEl.disabled = true;
+      sendBtn.disabled = true;
+
+      addMessage(message, 'user');
+      inputEl.value = '';
+
+      const typingDiv = addMessage('Thinking…', 'assistant');
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
         });
-        
-        document.getElementById('sendButton').addEventListener('click', sendMessage);
-        
-        async function sendMessage() {
-            console.log('sendMessage called');
-            
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            console.log('Message:', message);
-            
-            if (!message) {
-                console.log('Empty message, returning');
-                return;
-            }
-            
-            // Disable input while processing
-            input.disabled = true;
-            document.getElementById('sendButton').disabled = true;
-            
-            // Add user message to chat
-            addMessage(message, 'user');
-            input.value = '';
-            
-            // Show typing indicator
-            const typingDiv = addMessage('Claude is thinking...', 'assistant');
-            
-            try {
-                console.log('Sending to webhook...');
-                
-                // Send to n8n webhook
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message
-                    })
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Response data:', data);
-                
-                // Remove typing indicator
-                typingDiv.remove();
-                
-                // Add Claude's response
-                addMessage(data.response || JSON.stringify(data), 'assistant');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                typingDiv.remove();
-                addMessage('Error: ' + error.message, 'assistant');
-            } finally {
-                // Re-enable input
-                input.disabled = false;
-                document.getElementById('sendButton').disabled = false;
-                input.focus();
-            }
-        }
-        
-        function addMessage(text, type) {
-            console.log('Adding message:', type, text);
-            const container = document.getElementById('chatContainer');
-            const div = document.createElement('div');
-            div.className = 'message ' + type;
-            div.textContent = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return div;
-        }
-        
-        console.log('Event listeners attached');
-    </script>
+
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        const data = await response.json();
+
+        typingDiv.remove();
+        addMessage(data.response || JSON.stringify(data), 'assistant');
+      } catch (err) {
+        typingDiv.remove();
+        addMessage('Error: ' + err.message, 'assistant');
+      } finally {
+        inputEl.disabled = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+    }
+
+    function addMessage(text, type) {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = 'message ' + type;
+      div.textContent = text;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return div;
+    }
+  </script>
 </body>
 </html>
