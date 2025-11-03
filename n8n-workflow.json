@@ -21,7 +21,7 @@
     },
     {
       "parameters": {
-        "url": "https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/main/fantasy-football-engine.js",
+        "url": "https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/fantasy-football-engine.js",
         "options": {}
       },
       "id": "load-github-code",
