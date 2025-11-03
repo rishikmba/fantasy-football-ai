@@ -1,0 +1,172 @@
+{
+  "name": "Fantasy Football AI - Clean",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 3 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "notes": "Runs every 3 hours. Change to: 0 8 * * 2 for Tuesday 8 AM only"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/fantasy-football-engine.js",
+        "options": {}
+      },
+      "id": "load-github-code",
+      "name": "Load Code from GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "notes": "Fetches the analysis engine from GitHub - all the code lives here!"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Configuration - UPDATE YOUR EMAIL AND IDS!\n// GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/01-config.js\n\nconst config = {\n  // YOUR SLEEPER INFO - UPDATE THESE!\n  owner_id: '1260492147568689152',\n  league_id: '1257118081231097856',\n  season: '2024',\n\n  // YOUR EMAIL - UPDATE THIS!\n  email: 'YOUR_EMAIL@example.com',\n\n  // SETTINGS\n  current_week: 10,  // Update weekly\n  max_waiver_recommendations: 5,\n  include_reddit_analysis: false\n};\n\nreturn [{ json: { config } }];"
+      },
+      "id": "config-node",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "notes": "⚠️ EDIT THIS NODE - Update your email address!"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fetch Sleeper Data\n// GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/02-fetch-sleeper-data.js\n\nconst githubCode = $('Load Code from GitHub').first().json.data;\nconst config = $input.first().json.config;\n\n// Load the engine\neval(githubCode);\n\n// Create Sleeper API instance with n8n's $request\nconst sleeper = new SleeperAPI($request);\n\nconsole.log('Fetching roster for owner:', config.owner_id);\nconst roster = await sleeper.getUserRoster(config.league_id, config.owner_id);\n\nconsole.log('Fetching all NFL players...');\nconst allPlayers = await sleeper.getAllPlayers();\nconsole.log('Total players:', Object.keys(allPlayers).length);\n\nconsole.log('Fetching trending adds...');\nconst trendingAdds = await sleeper.getTrendingPlayersWithDetails('add', allPlayers, 30);\n\nconsole.log('Fetching trending drops...');\nconst trendingDrops = await sleeper.getTrendingPlayersWithDetails('drop', allPlayers, 30);\n\nconsole.log('Fetching league info...');\nconst league = await sleeper.getLeague(config.league_id);\n\nconsole.log('✓ Sleeper data fetch complete!');\n\nreturn [{\n  json: {\n    config,\n    sleeperData: {\n      roster,\n      allPlayers,\n      trendingAdds: trendingAdds.slice(0, 15),\n      trendingDrops: trendingDrops.slice(0, 10),\n      league\n    }\n  }\n}];"
+      },
+      "id": "fetch-sleeper-data",
+      "name": "Fetch Sleeper Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300],
+      "notes": "Gets your roster and trending players - no changes needed"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Analyze Team\n// GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/03-analyze-team.js\n\nconst githubCode = $('Load Code from GitHub').first().json.data;\nconst inputData = $input.first().json;\n\neval(githubCode);\n\nconst config = inputData.config;\nconst sleeperData = inputData.sleeperData;\nconst allPlayers = sleeperData.allPlayers;\nconst rosterPlayerIds = sleeperData.roster.players || [];\nconst starterIds = sleeperData.roster.starters || [];\n\nconsole.log('Analyzing roster...');\n\nconst positionAnalysis = analyzeRosterByPosition(rosterPlayerIds, allPlayers);\n\nconst waiverRecommendations = [];\nconst rosteredSet = new Set(rosterPlayerIds);\n\nfor (const trending of sleeperData.trendingAdds) {\n  if (!rosteredSet.has(trending.player_id)) {\n    const player = allPlayers[trending.player_id];\n    if (!player || !player.active) continue;\n    if (player.injury_status === 'Out' || player.injury_status === 'IR') continue;\n\n    const positionNeed = positionAnalysis[player.position]?.need || false;\n    const priorityScore = calculatePickupPriority(trending, positionNeed, null);\n\n    waiverRecommendations.push({\n      player_id: trending.player_id,\n      name: trending.name,\n      position: player.position,\n      team: player.team,\n      trending_count: trending.count,\n      position_need: positionNeed,\n      priority_score: Math.round(priorityScore)\n    });\n  }\n}\n\nwaiverRecommendations.sort((a, b) => b.priority_score - a.priority_score);\n\nconst dropCandidates = [];\n\nrosterPlayerIds.forEach(playerId => {\n  const player = allPlayers[playerId];\n  if (player && (player.injury_status === 'Out' || player.injury_status === 'IR')) {\n    dropCandidates.push({\n      player_id: playerId,\n      name: `${player.first_name} ${player.last_name}`,\n      position: player.position,\n      team: player.team,\n      injury_status: player.injury_status,\n      reason: `Injured: ${player.injury_status}`\n    });\n  }\n});\n\nfor (const drop of sleeperData.trendingDrops) {\n  if (rosterPlayerIds.includes(drop.player_id)) {\n    const player = allPlayers[drop.player_id];\n    if (!dropCandidates.find(d => d.player_id === drop.player_id)) {\n      dropCandidates.push({\n        player_id: drop.player_id,\n        name: drop.name,\n        position: player.position,\n        team: player.team,\n        injury_status: player.injury_status || 'active',\n        reason: `Trending drop (${drop.count} leagues)`\n      });\n    }\n  }\n}\n\nconst sitStartRecommendations = [];\nconst benchPlayerIds = rosterPlayerIds.filter(id => !starterIds.includes(id));\n\nfor (const starterId of starterIds) {\n  const starter = allPlayers[starterId];\n  if (!starter) continue;\n\n  if (starter.injury_status && starter.injury_status !== 'active') {\n    const benchAlternatives = benchPlayerIds\n      .map(id => allPlayers[id])\n      .filter(p => p && p.position === starter.position && (!p.injury_status || p.injury_status === 'active'));\n\n    if (benchAlternatives.length > 0) {\n      sitStartRecommendations.push({\n        type: 'sit',\n        player_name: `${starter.first_name} ${starter.last_name}`,\n        position: starter.position,\n        reason: `Injury: ${starter.injury_status}`,\n        alternatives: benchAlternatives.map(p => `${p.first_name} ${p.last_name} (${p.team})`)\n      });\n    }\n  }\n}\n\nconsole.log('✓ Analysis complete!');\n\nreturn [{\n  json: {\n    config,\n    analysis: {\n      league_info: {\n        name: sleeperData.league.name,\n        scoring: sleeperData.league.scoring_settings?.rec || 0,\n        total_rosters: sleeperData.league.total_rosters\n      },\n      position_analysis: positionAnalysis,\n      waiver_recommendations: waiverRecommendations.slice(0, config.max_waiver_recommendations),\n      drop_candidates: dropCandidates,\n      sit_start_recommendations: sitStartRecommendations,\n      timestamp: new Date().toISOString()\n    }\n  }\n}];"
+      },
+      "id": "analyze-team",
+      "name": "Analyze Team",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300],
+      "notes": "Generates recommendations - no changes needed"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate Email\n// GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/04-generate-email.js\n\nconst githubCode = $('Load Code from GitHub').first().json.data;\nconst inputData = $input.first().json;\n\neval(githubCode);\n\nconst config = inputData.config;\nconst analysis = inputData.analysis;\n\nconsole.log('Generating email report...');\n\nconst emailHTML = generateEmailHTML(analysis);\nconst emailSubject = `🏈 Fantasy Football Report - Week ${config.current_week} - ${analysis.league_info.name}`;\n\nconsole.log('✓ Email generated!');\n\nreturn [{\n  json: {\n    email_to: config.email,\n    email_subject: emailSubject,\n    email_html: emailHTML\n  }\n}];"
+      },
+      "id": "generate-email",
+      "name": "Generate Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300],
+      "notes": "Creates HTML email - no changes needed"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@n8n.io",
+        "toEmail": "={{ $json.email_to }}",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_html }}"
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1560, 300],
+      "notes": "⚠️ ADD YOUR SMTP CREDENTIALS HERE",
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Every 3 Hours": {
+      "main": [
+        [
+          {
+            "node": "Load Code from GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Code from GitHub": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sleeper Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sleeper Data": {
+      "main": [
+        [
+          {
+            "node": "Analyze Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Team": {
+      "main": [
+        [
+          {
+            "node": "Generate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-11-03T00:00:00.000Z",
+  "versionId": "1"
+}
