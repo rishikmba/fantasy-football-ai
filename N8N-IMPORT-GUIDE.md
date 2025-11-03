@@ -5,7 +5,7 @@ This guide will help you import the pre-configured Fantasy Football workflow int
 ## What You Get
 
 A complete workflow with **7 nodes** already configured:
-1. ✅ Schedule Trigger (Tuesday 8 AM)
+1. ✅ Schedule Trigger (Every 3 hours)
 2. ✅ Load Code from GitHub (automatically fetches latest code)
 3. ✅ Configuration (pre-configured with your IDs)
 4. ✅ Fetch Sleeper Data
@@ -18,6 +18,10 @@ A complete workflow with **7 nodes** already configured:
 - No need to manually update code in multiple n8n nodes
 - Easy version control and rollback
 - Share code across multiple workflows
+
+**Important Note:**
+- The workflow currently fetches code from the feature branch
+- Once you merge to main, update the GitHub URL in "Load Code from GitHub" node to use `/main/` instead of the branch name
 
 ---
 
@@ -121,7 +125,7 @@ A complete workflow with **7 nodes** already configured:
 
 1. **Click the "Inactive" toggle** at the top
 2. It will turn to **"Active"** 🟢
-3. **Done!** You'll now get emails every Tuesday at 8 AM
+3. **Done!** You'll now get emails every 3 hours
 
 ---
 
@@ -129,9 +133,14 @@ A complete workflow with **7 nodes** already configured:
 
 ### Change the Schedule
 
-**Click on "Tuesday 8 AM" node:**
+**Click on "Every 3 Hours" node:**
 
-**For Daily:**
+**Current setting (Every 3 hours):**
+```
+Cron Expression: 0 */3 * * *
+```
+
+**For Daily at 8 AM only:**
 ```
 Cron Expression: 0 8 * * *
 ```
@@ -141,10 +150,14 @@ Cron Expression: 0 8 * * *
 Cron Expression: 0 9 * * 0
 ```
 
-**For Tuesday AND Sunday:**
-You'll need to duplicate the workflow or use:
+**For Tuesday at 8 AM (Waiver Day):**
 ```
-Cron Expression: 0 8 * * 2,0
+Cron Expression: 0 8 * * 2
+```
+
+**For every hour:**
+```
+Cron Expression: 0 * * * *
 ```
 
 ### Update Current Week
@@ -216,7 +229,7 @@ Commit to GitHub, and your next workflow run will use the new logic!
 
 ```
 ┌─────────────────────┐
-│  Schedule Trigger   │  Runs Tuesday 8 AM
+│  Schedule Trigger   │  Runs every 3 hours
 └──────────┬──────────┘
            │
            ▼
@@ -411,10 +424,12 @@ The workflow is already optimized:
 ✅ **Import workflow** → ✅ **Update email** → ✅ **Test** → ✅ **Activate**
 
 Once active, you'll receive:
-- 📧 Tuesday mornings: Waiver wire analysis
+- 📧 Every 3 hours: Updated analysis
 - 🎯 Actionable recommendations
 - 📊 Roster health check
 - 🔥 Trending player alerts
+
+**Note:** Running every 3 hours means you'll get ~8 emails per day. You may want to adjust the schedule to run less frequently (e.g., daily at 8 AM or only on Tuesday/Sunday).
 
 **Good luck dominating your league!** 🏆
 
@@ -433,8 +448,10 @@ Once active, you'll receive:
 
 ✅ Your `owner_id`: `1260492147568689152`
 ✅ Your `league_id`: `1257118081231097856`
-✅ Schedule: Tuesday 8 AM
-✅ Code source: GitHub (auto-updates)
+✅ Schedule: Every 3 hours (can be customized)
+✅ Code source: GitHub feature branch (auto-updates)
 ✅ All analysis logic ready to go
 
 **Just add your email and SMTP credentials, then activate!**
+
+**Optional:** After merging to main branch, update the GitHub URL in the workflow to use `/main/` instead of the branch name.
