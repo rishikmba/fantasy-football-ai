@@ -7,17 +7,17 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 8 * * 2"
+              "expression": "0 */3 * * *"
             }
           ]
         }
       },
       "id": "schedule-trigger",
-      "name": "Tuesday 8 AM",
+      "name": "Every 3 Hours",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [240, 300],
-      "notes": "Runs every Tuesday at 8 AM (waiver wire day)"
+      "notes": "Runs every 3 hours throughout the day"
     },
     {
       "parameters": {
