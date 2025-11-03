@@ -6,7 +6,7 @@ This guide will help you import the pre-configured Fantasy Football workflow int
 
 A complete workflow with **7 nodes** already configured:
 1. ✅ Schedule Trigger (Every 3 hours)
-2. ✅ Load Code from GitHub (automatically fetches latest code)
+2. ✅ Load Code from GitHub (automatically fetches latest code from main branch)
 3. ✅ Configuration (pre-configured with your IDs)
 4. ✅ Fetch Sleeper Data
 5. ✅ Analyze Team
@@ -18,10 +18,7 @@ A complete workflow with **7 nodes** already configured:
 - No need to manually update code in multiple n8n nodes
 - Easy version control and rollback
 - Share code across multiple workflows
-
-**Important Note:**
-- The workflow currently fetches code from the feature branch
-- Once you merge to main, update the GitHub URL in "Load Code from GitHub" node to use `/main/` instead of the branch name
+- Code is fetched from the main branch for stability
 
 ---
 
@@ -127,6 +124,8 @@ A complete workflow with **7 nodes** already configured:
 2. It will turn to **"Active"** 🟢
 3. **Done!** You'll now get emails every 3 hours
 
+**Note:** Running every 3 hours means ~8 emails per day. You may want to adjust the schedule (see Customization Options below).
+
 ---
 
 ## Customization Options
@@ -140,14 +139,9 @@ A complete workflow with **7 nodes** already configured:
 Cron Expression: 0 */3 * * *
 ```
 
-**For Daily at 8 AM only:**
+**For Daily at 8 AM only (Recommended):**
 ```
 Cron Expression: 0 8 * * *
-```
-
-**For Sunday Morning (Gameday):**
-```
-Cron Expression: 0 9 * * 0
 ```
 
 **For Tuesday at 8 AM (Waiver Day):**
@@ -155,9 +149,14 @@ Cron Expression: 0 9 * * 0
 Cron Expression: 0 8 * * 2
 ```
 
-**For every hour:**
+**For Sunday Morning (Gameday):**
 ```
-Cron Expression: 0 * * * *
+Cron Expression: 0 9 * * 0
+```
+
+**For every 6 hours (4 emails/day):**
+```
+Cron Expression: 0 */6 * * *
 ```
 
 ### Update Current Week
@@ -234,7 +233,7 @@ Commit to GitHub, and your next workflow run will use the new logic!
            │
            ▼
 ┌─────────────────────┐
-│ Load GitHub Code    │  Fetches fantasy-football-engine.js
+│ Load GitHub Code    │  Fetches fantasy-football-engine.js from main branch
 └──────────┬──────────┘
            │
            ▼
@@ -424,12 +423,12 @@ The workflow is already optimized:
 ✅ **Import workflow** → ✅ **Update email** → ✅ **Test** → ✅ **Activate**
 
 Once active, you'll receive:
-- 📧 Every 3 hours: Updated analysis
+- 📧 Every 3 hours: Updated analysis (~8 emails/day)
 - 🎯 Actionable recommendations
 - 📊 Roster health check
 - 🔥 Trending player alerts
 
-**Note:** Running every 3 hours means you'll get ~8 emails per day. You may want to adjust the schedule to run less frequently (e.g., daily at 8 AM or only on Tuesday/Sunday).
+**Tip:** Most users prefer to change the schedule to run once daily (8 AM) or only on Tuesday mornings (waiver day) to avoid email overload.
 
 **Good luck dominating your league!** 🏆
 
@@ -448,10 +447,10 @@ Once active, you'll receive:
 
 ✅ Your `owner_id`: `1260492147568689152`
 ✅ Your `league_id`: `1257118081231097856`
-✅ Schedule: Every 3 hours (can be customized)
-✅ Code source: GitHub feature branch (auto-updates)
+✅ Schedule: Every 3 hours (customizable)
+✅ Code source: GitHub main branch (auto-updates)
 ✅ All analysis logic ready to go
 
 **Just add your email and SMTP credentials, then activate!**
 
-**Optional:** After merging to main branch, update the GitHub URL in the workflow to use `/main/` instead of the branch name.
+**Recommendation:** Change the schedule to run less frequently (e.g., once daily at 8 AM or only on Tuesday mornings) to avoid email overload.
