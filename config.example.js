@@ -6,8 +6,13 @@
 module.exports = {
   // ===== SLEEPER SETTINGS =====
   sleeper: {
-    // Your Sleeper username (not display name)
+    // OPTION 1: Use your Sleeper username (not display name)
     username: 'YOUR_SLEEPER_USERNAME',
+
+    // OPTION 2: Use your user_id / owner_id directly (faster, skips one API call)
+    // Find your user_id in your roster data or league users endpoint
+    // If provided, this takes priority over username
+    user_id: null, // Example: '123456789012'
 
     // Your primary league ID (found in the URL when viewing your league)
     // Example: https://sleeper.com/leagues/123456789 -> league_id is "123456789"

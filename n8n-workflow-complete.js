@@ -12,7 +12,15 @@
 
 const config = {
   // YOUR SETTINGS - UPDATE THESE!
+
+  // OPTION 1: Use your Sleeper username
   sleeper_username: 'YOUR_SLEEPER_USERNAME',
+
+  // OPTION 2: Use your user_id / owner_id directly (recommended - faster!)
+  // If you provide this, it will be used instead of username
+  // Find your owner_id by viewing your roster in Sleeper API or league settings
+  user_id: null, // Example: '123456789012'
+
   league_id: 'YOUR_LEAGUE_ID',
   season: '2024',
   email: 'your.email@example.com',
@@ -40,12 +48,20 @@ const sleeper = new SleeperAPI();
 
 async function fetchSleeperData() {
   try {
-    console.log('Fetching user:', config.sleeper_username);
-    const user = await sleeper.getUser(config.sleeper_username);
-    console.log('User ID:', user.user_id);
+    // Use user_id if provided, otherwise fetch user by username
+    let userId;
+    if (config.user_id) {
+      console.log('Using provided user_id:', config.user_id);
+      userId = config.user_id;
+    } else {
+      console.log('Fetching user:', config.sleeper_username);
+      const user = await sleeper.getUser(config.sleeper_username);
+      userId = user.user_id;
+      console.log('User ID:', userId);
+    }
 
     console.log('Fetching roster for league:', config.league_id);
-    const roster = await sleeper.getUserRoster(config.league_id, user.user_id);
+    const roster = await sleeper.getUserRoster(config.league_id, userId);
 
     console.log('Fetching all NFL players...');
     const allPlayers = await sleeper.getAllPlayers();
@@ -65,7 +81,7 @@ async function fetchSleeperData() {
     const league = await sleeper.getLeague(config.league_id);
 
     return {
-      user,
+      user: { user_id: userId }, // Return user object with user_id
       roster,
       allPlayers,
       trendingAdds: trendingAdds.slice(0, 15),  // Limit to top 15

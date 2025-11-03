@@ -51,9 +51,10 @@ An automated fantasy football analysis system that monitors your Sleeper league 
 
 ### 5-Minute Setup
 
-1. **Get your Sleeper League ID:**
-   - Go to your league on Sleeper
-   - Copy the ID from the URL: `https://sleeper.com/leagues/YOUR_LEAGUE_ID`
+1. **Get your Sleeper info:**
+   - **League ID:** From your league URL: `https://sleeper.com/leagues/YOUR_LEAGUE_ID`
+   - **Owner ID (recommended):** See [HOW-TO-FIND-OWNER-ID.md](./HOW-TO-FIND-OWNER-ID.md)
+   - **OR Username:** From your Sleeper profile
 
 2. **Clone this repository:**
    ```bash
@@ -176,7 +177,12 @@ Edit `config.js` with your personal settings:
 ```javascript
 {
   sleeper: {
-    username: 'your_sleeper_username',  // Your Sleeper username
+    // OPTION 1: Use user_id (recommended - faster!)
+    user_id: '123456789012',             // Your Sleeper owner_id
+
+    // OPTION 2: Use username (works but slower)
+    username: 'your_sleeper_username',   // Your Sleeper username
+
     league_id: '123456789',              // Your league ID
     season: '2024'                       // Current season
   },
