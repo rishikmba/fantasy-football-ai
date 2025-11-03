@@ -20,19 +20,33 @@ An automated system that emails you daily with:
 
 ## Step 1: Get Your Sleeper Info (2 minutes)
 
-### Find Your Username
+### Find Your League ID
+1. Go to your league on Sleeper
+2. Look at the URL: `https://sleeper.com/leagues/123456789`
+3. Copy the number at the end → That's your league ID
+
+### Find Your User ID (RECOMMENDED - Easier!)
+
+**Option A: From League URL**
+1. Go to your league
+2. Look at the URL: `https://sleeper.com/leagues/LEAGUE_ID/team?userId=YOUR_USER_ID`
+3. The `userId` parameter is your user_id (owner_id)
+
+**Option B: Using Sleeper API** (easiest)
+1. Go to: `https://api.sleeper.app/v1/league/YOUR_LEAGUE_ID/rosters`
+2. Find your team in the JSON
+3. Look for `"owner_id": "123456789012"` - that's your user_id!
+
+**Option C: Use Username Instead**
 1. Log into Sleeper
 2. Click your profile
 3. Your username is shown at the top (not your display name!)
 
-### Find Your League ID
-1. Go to your league
-2. Look at the URL: `https://sleeper.com/leagues/123456789`
-3. Copy the number at the end → That's your league ID
-
 **Write these down:**
-- Username: `________________`
 - League ID: `________________`
+- User ID (or Username): `________________`
+
+**💡 Pro Tip:** Using `user_id` is faster because it skips one API call!
 
 ## Step 2: Set Up n8n Workflow (5 minutes)
 
@@ -78,7 +92,13 @@ An automated system that emails you daily with:
 
 ```javascript
 const config = {
+  // OPTION 1: Use username (slower)
   sleeper_username: 'YOUR_USERNAME_HERE',    // ← PUT YOUR USERNAME
+
+  // OPTION 2: Use user_id/owner_id (RECOMMENDED - faster!)
+  user_id: null,                              // ← PUT YOUR USER_ID, e.g. '123456789012'
+  // If you provide user_id, it will be used instead of username
+
   league_id: 'YOUR_LEAGUE_ID_HERE',          // ← PUT YOUR LEAGUE ID
   season: '2024',
   email: 'your.email@example.com',           // ← PUT YOUR EMAIL
@@ -93,9 +113,10 @@ return [{ json: { config } }];
 ```
 
 **Replace:**
-- `YOUR_USERNAME_HERE` with your Sleeper username
 - `YOUR_LEAGUE_ID_HERE` with your league ID
 - `your.email@example.com` with your email
+- EITHER `YOUR_USERNAME_HERE` with your username
+- OR `user_id: null` with `user_id: 'YOUR_USER_ID'` (recommended!)
 
 **Click:** Execute Node ✓
 

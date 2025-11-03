@@ -12,15 +12,33 @@ class SleeperAPI {
 
   /**
    * Fetch user data by username or user_id
-   * @param {string} username - Sleeper username
+   * @param {string} usernameOrId - Sleeper username OR user_id (owner_id)
    * @returns {Promise<Object>} User object with user_id, username, display_name, etc.
    */
-  async getUser(username) {
-    const response = await fetch(`${this.baseUrl}/user/${username}`);
+  async getUser(usernameOrId) {
+    const response = await fetch(`${this.baseUrl}/user/${usernameOrId}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch user: ${response.status} ${response.statusText}`);
     }
     return await response.json();
+  }
+
+  /**
+   * Get user_id from username or return user_id if already provided
+   * This helper skips the API call if you already have the user_id
+   * @param {string} usernameOrId - Username OR user_id
+   * @returns {Promise<string>} User ID
+   */
+  async getUserId(usernameOrId) {
+    // If it looks like a user_id (numeric string), return it directly
+    // Sleeper user_ids are typically 10+ digit numbers
+    if (/^\d{10,}$/.test(usernameOrId)) {
+      return usernameOrId;
+    }
+
+    // Otherwise, fetch user data to get the user_id
+    const user = await this.getUser(usernameOrId);
+    return user.user_id;
   }
 
   /**
