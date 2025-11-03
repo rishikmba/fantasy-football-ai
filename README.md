@@ -49,11 +49,26 @@ An automated fantasy football analysis system that monitors your Sleeper league 
 2. **n8n instance** - For workflow automation (cloud or self-hosted)
 3. **Email service** - Gmail, SendGrid, or any SMTP provider
 
-### 5-Minute Setup
+### 5-Minute Setup (Import n8n Workflow)
 
-1. **Get your Sleeper League ID:**
-   - Go to your league on Sleeper
-   - Copy the ID from the URL: `https://sleeper.com/leagues/YOUR_LEAGUE_ID`
+**EASIEST METHOD** - Import pre-built workflow:
+
+1. **Download** `n8n-workflow.json` from this repo
+2. **Import** into n8n (click "..." → Import from File)
+3. **Update** your email in the Configuration node
+4. **Add** SMTP credentials to Send Email node
+5. **Activate** the workflow
+
+**Detailed guide:** See [N8N-IMPORT-GUIDE.md](./N8N-IMPORT-GUIDE.md)
+
+---
+
+### Alternative Setup (Manual)
+
+1. **Get your Sleeper info:**
+   - **League ID:** From your league URL: `https://sleeper.com/leagues/YOUR_LEAGUE_ID`
+   - **Owner ID (recommended):** See [HOW-TO-FIND-OWNER-ID.md](./HOW-TO-FIND-OWNER-ID.md)
+   - **OR Username:** From your Sleeper profile
 
 2. **Clone this repository:**
    ```bash
@@ -67,7 +82,7 @@ An automated fantasy football analysis system that monitors your Sleeper league 
    # Edit config.js with your details
    ```
 
-4. **Import n8n workflow:**
+4. **Manual n8n setup:**
    - See [n8n-workflow-guide.md](./n8n-workflow-guide.md)
    - Copy the code nodes from the guide
    - Configure your schedule
@@ -176,7 +191,12 @@ Edit `config.js` with your personal settings:
 ```javascript
 {
   sleeper: {
-    username: 'your_sleeper_username',  // Your Sleeper username
+    // OPTION 1: Use user_id (recommended - faster!)
+    user_id: '123456789012',             // Your Sleeper owner_id
+
+    // OPTION 2: Use username (works but slower)
+    username: 'your_sleeper_username',   // Your Sleeper username
+
     league_id: '123456789',              // Your league ID
     season: '2024'                       // Current season
   },
