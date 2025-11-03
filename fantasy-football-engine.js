@@ -4,23 +4,52 @@
  * Designed to be fetched from GitHub and executed in n8n Code nodes
  *
  * GitHub URL: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/main/fantasy-football-engine.js
+ *
+ * IMPORTANT: This code is designed to work in n8n's Code node environment
+ * It uses the n8n $request helper for HTTP requests
  */
 
 // ============================================================================
-// SLEEPER API CLASS
+// SLEEPER API CLASS - Works with n8n's $request
 // ============================================================================
 
 class SleeperAPI {
-  constructor() {
+  constructor(httpClient) {
     this.baseUrl = 'https://api.sleeper.app/v1';
+    // Use provided HTTP client (n8n's $request) or fall back to fetch
+    this.httpClient = httpClient || (typeof $request !== 'undefined' ? $request : null);
+
+    if (!this.httpClient && typeof fetch === 'undefined') {
+      throw new Error('No HTTP client available. Please provide $request or ensure fetch is available.');
+    }
+  }
+
+  async makeRequest(url) {
+    if (this.httpClient && this.httpClient.constructor.name === 'Object') {
+      // Using n8n's $request
+      const response = await this.httpClient(url, {
+        method: 'GET',
+        returnFullResponse: true,
+        ignoreHttpStatusErrors: true
+      });
+
+      if (response.statusCode >= 400) {
+        throw new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`);
+      }
+
+      return JSON.parse(response.body);
+    } else {
+      // Using standard fetch
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
   }
 
   async getUser(usernameOrId) {
-    const response = await fetch(`${this.baseUrl}/user/${usernameOrId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch user: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/user/${usernameOrId}`);
   }
 
   async getUserId(usernameOrId) {
@@ -32,69 +61,37 @@ class SleeperAPI {
   }
 
   async getUserLeagues(userId, season = '2024') {
-    const response = await fetch(`${this.baseUrl}/user/${userId}/leagues/nfl/${season}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch leagues: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/user/${userId}/leagues/nfl/${season}`);
   }
 
   async getLeague(leagueId) {
-    const response = await fetch(`${this.baseUrl}/league/${leagueId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch league: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/league/${leagueId}`);
   }
 
   async getLeagueRosters(leagueId) {
-    const response = await fetch(`${this.baseUrl}/league/${leagueId}/rosters`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch rosters: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/league/${leagueId}/rosters`);
   }
 
   async getLeagueUsers(leagueId) {
-    const response = await fetch(`${this.baseUrl}/league/${leagueId}/users`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch league users: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/league/${leagueId}/users`);
   }
 
   async getMatchups(leagueId, week) {
-    const response = await fetch(`${this.baseUrl}/league/${leagueId}/matchups/${week}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch matchups: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/league/${leagueId}/matchups/${week}`);
   }
 
   async getTrendingPlayers(type = 'add', lookbackHours = 24, limit = 25) {
-    const response = await fetch(
+    return await this.makeRequest(
       `${this.baseUrl}/players/nfl/trending/${type}?lookback_hours=${lookbackHours}&limit=${limit}`
     );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch trending players: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
   }
 
   async getAllPlayers() {
-    const response = await fetch(`${this.baseUrl}/players/nfl`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch all players: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/players/nfl`);
   }
 
   async getTransactions(leagueId, round) {
-    const response = await fetch(`${this.baseUrl}/league/${leagueId}/transactions/${round}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch transactions: ${response.status} ${response.statusText}`);
-    }
-    return await response.json();
+    return await this.makeRequest(`${this.baseUrl}/league/${leagueId}/transactions/${round}`);
   }
 
   async getUserRoster(leagueId, userId) {
@@ -161,56 +158,63 @@ class SleeperAPI {
 }
 
 // ============================================================================
-// REDDIT SCRAPER CLASS
+// REDDIT SCRAPER CLASS - Works with n8n's $request
 // ============================================================================
 
 class RedditScraper {
-  constructor() {
+  constructor(httpClient) {
     this.subreddit = 'fantasyfootball';
     this.baseUrl = 'https://www.reddit.com';
+    this.httpClient = httpClient || (typeof $request !== 'undefined' ? $request : null);
+
+    if (!this.httpClient && typeof fetch === 'undefined') {
+      throw new Error('No HTTP client available. Please provide $request or ensure fetch is available.');
+    }
+  }
+
+  async makeRequest(url) {
+    if (this.httpClient && this.httpClient.constructor.name === 'Object') {
+      // Using n8n's $request
+      const response = await this.httpClient(url, {
+        method: 'GET',
+        headers: { 'User-Agent': 'FantasyFootballAnalyzer/1.0' },
+        returnFullResponse: true,
+        ignoreHttpStatusErrors: true
+      });
+
+      if (response.statusCode >= 400) {
+        throw new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`);
+      }
+
+      return JSON.parse(response.body);
+    } else {
+      // Using standard fetch
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'FantasyFootballAnalyzer/1.0' }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
   }
 
   async getHotPosts(limit = 25) {
     const url = `${this.baseUrl}/r/${this.subreddit}/hot.json?limit=${limit}`;
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'FantasyFootballAnalyzer/1.0' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hot posts: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await this.makeRequest(url);
     return this.parseRedditResponse(data);
   }
 
   async getTopPosts(time = 'day', limit = 25) {
     const url = `${this.baseUrl}/r/${this.subreddit}/top.json?t=${time}&limit=${limit}`;
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'FantasyFootballAnalyzer/1.0' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch top posts: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await this.makeRequest(url);
     return this.parseRedditResponse(data);
   }
 
   async searchPlayer(playerName, limit = 25) {
     const query = encodeURIComponent(playerName);
     const url = `${this.baseUrl}/r/${this.subreddit}/search.json?q=${query}&restrict_sr=1&limit=${limit}&sort=relevance&t=week`;
-
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'FantasyFootballAnalyzer/1.0' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to search for player: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await this.makeRequest(url);
     return this.parseRedditResponse(data);
   }
 
@@ -275,7 +279,6 @@ class RedditScraper {
 
   async analyzePlayer(playerName) {
     const posts = await this.searchPlayer(playerName, 10);
-
     const allText = posts.map(p => `${p.title} ${p.selftext}`).join(' ');
     const sentiment = this.analyzeSentiment(allText);
 
