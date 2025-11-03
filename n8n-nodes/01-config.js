@@ -4,7 +4,7 @@
  * This node just sets your configuration.
  * UPDATE YOUR SETTINGS BELOW!
  *
- * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/n8n-github-clean/n8n-nodes/01-config.js
+ * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/01-config.js
  */
 
 const config = {

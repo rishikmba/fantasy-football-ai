@@ -121,7 +121,7 @@ max_waiver_recommendations: 10,  // Show top 10 instead of 5
 ### Where Everything Lives
 
 ```
-GitHub Repository
+GitHub Repository (Branch: claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD)
 ├── fantasy-football-engine.js     ← Main engine (all the logic!)
 └── n8n-nodes/
     ├── 01-config.js              ← Config (edit your email)

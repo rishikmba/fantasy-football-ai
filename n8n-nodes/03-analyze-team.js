@@ -4,7 +4,7 @@
  * Analyzes your roster and generates recommendations.
  * NO CHANGES NEEDED - This is ready to use!
  *
- * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/n8n-github-clean/n8n-nodes/03-analyze-team.js
+ * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/03-analyze-team.js
  */
 
 // Load the GitHub engine code

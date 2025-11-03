@@ -4,7 +4,7 @@
  * Loads the engine from GitHub and fetches your Sleeper data.
  * NO CHANGES NEEDED - This is ready to use!
  *
- * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/n8n-github-clean/n8n-nodes/02-fetch-sleeper-data.js
+ * GitHub: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/n8n-nodes/02-fetch-sleeper-data.js
  */
 
 // Get the GitHub engine code from previous node

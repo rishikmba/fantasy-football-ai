@@ -89,7 +89,7 @@ These are the **minimal code snippets** for each n8n Code node. All the heavy lo
 3. Configure HTTP Request node:
    ```
    Method: GET
-   URL: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/n8n-github-clean/fantasy-football-engine.js
+   URL: https://raw.githubusercontent.com/rishikmba/fantasy-football-ai/claude/sleeper-fantasy-football-api-011CUk8Lz7fGE4jt5xKapGiD/fantasy-football-engine.js
    ```
 
 4. Copy code into each Code node:
